@@ -1,0 +1,244 @@
+# Blog Platform – Architecture & Documentation
+
+## 1. Introduction
+
+The Blog Platform is a web application that allows users to create, manage, and share blog posts. Users can register, authenticate themselves, publish articles, and interact with posts created by other users.
+
+The primary goal is to provide a simple and scalable platform with a modular architecture that can be extended with additional features in the future.
+
+## 2. Core Features
+
+The platform will initially support the following features:
+
+- **User Authentication:** Users can register, log in, and log out securely.
+- **Blog Management:** Authenticated users can create, edit, and delete their own blog posts.
+- **Blog Listing:** Users can browse published blog posts.
+- **Blog Details:** Users can view individual posts along with author information.
+- **User Profiles:** Users can view basic profile information and their published posts.
+- **Comments:** Users can comment on blog posts and engage with other authors.
+
+## 3. High-Level Architecture
+
+The application will follow a client-server architecture.
+
+The frontend communicates with the backend through REST APIs, while the backend handles business logic, authentication, validation, and database operations.
+
+```text
+              +----------------------+
+              |      Frontend        |
+              |   (Web Application)  |
+              +----------+-----------+
+                         |
+                         | HTTP / REST API
+                         |
+              +----------v-----------+
+              |      Backend         |
+              |   (Business Logic)   |
+              +----------+-----------+
+                         |
+              +----------v-----------+
+              |      Database        |
+              |   (Persistent Data)  |
+              +----------------------+
+```
+
+### Component Responsibilities
+
+**Frontend**
+- Provides the user interface.
+- Handles user interactions and form submissions.
+- Communicates with backend APIs.
+- Displays blog posts, comments, and user profiles.
+
+**Backend**
+- Exposes REST API endpoints.
+- Handles authentication and authorization.
+- Implements blog-related business logic.
+- Validates incoming requests.
+- Interacts with the database.
+
+**Database**
+- Stores user information.
+- Stores blog posts and comments.
+- Maintains relationships between users and their content.
+
+## 4. Basic Project Structure
+
+The following is a proposed directory structure. The exact structure can be adjusted based on the technology stack.
+
+```text
+blog-platform/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   └── utils/
+│   └── package.json
+│
+├── backend/
+│   ├── config/
+│   ├── apps/
+│   │   ├── users/
+│   │   ├── blogs/
+│   │   └── comments/
+│   ├── manage.py
+│   └── requirements.txt
+│
+├── docs/
+│   └── BLOG_PLATFORM.md
+│
+├── .gitignore
+└── README.md
+```
+
+### Backend Module Responsibilities
+
+| Module | Responsibility |
+|---|---|
+| `users/` | User registration, authentication, and profiles |
+| `blogs/` | Blog creation, editing, deletion, and retrieval |
+| `comments/` | Comment creation, retrieval, and deletion |
+| `config/` | Application settings, database configuration, and routing |
+
+## 5. Database Design
+
+The initial database design will consist of three primary entities.
+
+### User
+
+| Field | Description |
+|---|---|
+| id | Unique user identifier |
+| username | User's username |
+| email | User's email address |
+| password | Hashed password |
+| created_at | Account creation timestamp |
+
+### BlogPost
+
+| Field | Description |
+|---|---|
+| id | Unique post identifier |
+| title | Blog post title |
+| content | Main blog content |
+| author_id | Reference to the user who created the post |
+| status | Draft or published |
+| created_at | Post creation timestamp |
+| updated_at | Last modification timestamp |
+
+### Comment
+
+| Field | Description |
+|---|---|
+| id | Unique comment identifier |
+| content | Comment text |
+| author_id | Reference to the user who commented |
+| post_id | Reference to the associated blog post |
+| created_at | Comment creation timestamp |
+
+### Entity Relationships
+
+- One user can create multiple blog posts.
+- One user can write multiple comments.
+- One blog post can have multiple comments.
+- Each blog post belongs to a single author.
+
+```text
+User (1) -------- (N) BlogPost
+User (1) -------- (N) Comment
+BlogPost (1) ---- (N) Comment
+```
+
+## 6. API Structure
+
+The backend will expose REST APIs to support the platform's core functionality.
+
+### Authentication APIs
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/auth/register/` | Register a new user |
+| POST | `/api/auth/login/` | Authenticate a user |
+| POST | `/api/auth/logout/` | Log out a user |
+
+### Blog APIs
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/blogs/` | Retrieve all published blogs |
+| GET | `/api/blogs/{id}/` | Retrieve a specific blog |
+| POST | `/api/blogs/` | Create a new blog |
+| PUT/PATCH | `/api/blogs/{id}/` | Update an existing blog |
+| DELETE | `/api/blogs/{id}/` | Delete a blog |
+
+### Comment APIs
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/blogs/{id}/comments/` | Retrieve comments for a blog |
+| POST | `/api/blogs/{id}/comments/` | Add a comment |
+| DELETE | `/api/comments/{id}/` | Delete a comment |
+
+All write operations will require appropriate authentication and authorization.
+
+## 7. Application Workflows
+
+### User Registration and Authentication
+
+1. A user submits registration details through the frontend.
+2. The frontend sends the information to the backend.
+3. The backend validates the information and securely stores the user's credentials.
+4. During login, the backend verifies the credentials.
+5. Upon successful authentication, the backend establishes an authenticated session or returns an authentication token.
+
+### Blog Creation
+
+1. An authenticated user opens the blog creation interface.
+2. The user enters the title and content.
+3. The frontend sends the data to the backend.
+4. The backend validates the request and verifies the user's identity.
+5. The blog post is stored in the database with the user as its author.
+6. The newly created post becomes available according to its publication status.
+
+### Blog Viewing
+
+1. A user visits the blog listing page.
+2. The frontend requests published blog posts from the backend.
+3. The backend retrieves the relevant posts from the database.
+4. The frontend displays the posts.
+5. Selecting a post fetches and displays its complete content and associated comments.
+
+## 8. Security and Authorization
+
+The platform should follow basic security practices:
+
+- Passwords must be securely hashed and never stored as plain text.
+- Protected endpoints must require authentication.
+- Users should only be allowed to modify or delete their own blog posts.
+- Input validation should be performed on the backend.
+- Appropriate permissions should be enforced for comment management.
+- Sensitive configuration values should be stored in environment variables.
+
+## 9. Future Enhancements
+
+The architecture should allow additional functionality to be introduced later, such as:
+
+- Blog categories and tags.
+- Search and filtering.
+- Pagination.
+- Likes and bookmarks.
+- Rich text or Markdown editor.
+- Image and media uploads.
+- Notifications.
+- Admin dashboard.
+- Caching and performance optimization.
+
+## 10. Conclusion
+
+This document establishes the initial architectural direction and functional scope of the Blog Platform.
+
+The proposed structure is intentionally modular so that individual components can be developed, tested, and maintained independently.
+
+The architecture and database design are preliminary and can evolve as implementation requirements become clearer.
